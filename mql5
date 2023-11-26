@@ -1,0 +1,73 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                           Stop Out Monitor.mq5   |
+//|                                      Copyright © 2022, Forex Robot Easy Team    |
+//|                                            https://forexroboteasy.com  |
+//+------------------------------------------------------------------+
+#property version    '1.00'
+#property strict
+#property indicator_chart_window
+
+//+------------------------------------------------------------------+
+//| Global variables                                                  |
+//+------------------------------------------------------------------+
+double stopoutLevel; // Stop out level in percentage
+int stopoutPips; // Stop out level in pips
+double riskTolerance; // Risk tolerance level in percentage
+string currencyPair; // Current currency pair
+double accountBalance; // Account balance
+double accountRisk; // Account risk level
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set initial values
+    stopoutLevel = 50; // Default stop out level
+    stopoutPips = 100; // Default stop out level
+    riskTolerance = 2; // Default risk tolerance level
+    currencyPair = Symbol(); // Current currency pair
+    accountBalance = AccountInfoDouble(ACCOUNT_BALANCE); // Account balance
+    accountRisk = (accountBalance * riskTolerance) / 100; // Calculate account risk level
+
+    // Define indicator properties
+    IndicatorSetString(INDICATOR_SHORTNAME, 'Stop Out Monitor');
+    IndicatorSetInteger(INDICATOR_DIGITS, MarketInfo(Symbol(), MODE_DIGITS));
+    IndicatorSetString(INDICATOR_LEVELS, 'Stop Out Level');
+    IndicatorSetInteger(INDICATOR_LEVELS_COUNT, 1);
+    IndicatorSetDouble(INDICATOR_LEVELVALUE, 0, stopoutLevel);
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    // Calculate stop out level in pips
+    stopoutPips = MathRound(stopoutLevel * MarketInfo(currencyPair, MODE_POINT));
+
+    // Check if account will stop out for each currency pair
+    if (accountRisk > 0)
+    {
+        Print('Account risk level: ', accountRisk, ' pips');
+        Print('Account will stop out for ', currencyPair, ' if it moves ', stopoutPips, ' pips');
+    }
+    else
+    {
+        Print('Account risk level is zero');
+    }
+
+    return(rates_total);
+}
